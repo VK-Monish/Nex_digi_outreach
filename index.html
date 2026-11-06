@@ -1,1 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nex Digi · Outreach Radar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="logged-out">
+  <section class="login" id="login-screen">
+    <div class="login-card">
+      <div class="brand login-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 5a7 7 0 0 1 7 7"></path>
+            <path d="M12 2a10 10 0 0 1 10 10"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Nex Digi</strong>
+          <small>Outreach Radar | Mini Radar</small>
+        </div>
+      </div>
+      <h1>Sign in</h1>
+      <p>Use your team username to open the Mini Radar outreach workspace.</p>
+      <form id="login-form">
+        <label>Username<input name="username" autocomplete="username" required /></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
+        <p class="login-error" id="login-error" hidden>Username or password is incorrect.</p>
+        <button class="btn green login-submit" type="submit">Sign in</button>
+      </form>
+    </div>
+  </section>
 
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 5a7 7 0 0 1 7 7"></path>
+            <path d="M12 2a10 10 0 0 1 10 10"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Nex Digi</strong>
+          <small>Outreach Radar | Mini Radar</small>
+        </div>
+      </div>
+
+      <nav class="side-nav" aria-label="Main">
+        <button class="nav-item active" data-view="dashboard" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" data-view="companies" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 21v-6h6v6"></path></svg>
+          Companies
+        </button>
+        <button class="nav-item" data-view="templates" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"></path><path d="M4 8h16"></path><path d="M8 4v4"></path></svg>
+          Email Templates
+        </button>
+      </nav>
+
+      <button class="nav-item settings" data-view="settings" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+        Settings
+      </button>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3-3"></path></svg>
+          <input id="global-search" type="search" placeholder="Search companies, notes..." />
+        </label>
+        <div class="top-actions">
+          <button class="icon-btn" type="button" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg>
+            <span class="dot"></span>
+          </button>
+          <div class="user-chip">
+            <span class="avatar" id="user-initials">—</span>
+            <span id="user-label">Signed in</span>
+          </div>
+          <button class="btn ghost" id="sign-out" type="button">Sign out</button>
+        </div>
+      </header>
+
+      <section class="view" id="view-dashboard">
+        <div class="page-head">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Track B2B outreach, pipeline metrics, and follow-ups for 60 GHz Mini Radar.</p>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <article class="kpi">
+            <div class="kpi-top"><small>Total Companies</small><span class="kpi-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M6 21V8h4v13"></path><path d="M14 21V4h4v17"></path></svg></span></div>
+            <strong id="kpi-total">0</strong>
+          </article>
+          <article class="kpi">
+            <div class="kpi-top"><small>Mails Sent (90d)</small><span class="kpi-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"></path><path d="M4 8l8 6 8-6"></path></svg></span></div>
+            <strong id="kpi-mails">0</strong>
+          </article>
+          <article class="kpi">
+            <div class="kpi-top"><small>Replies Received</small><span class="kpi-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"></path><path d="M8 12h8"></path></svg></span></div>
+            <strong id="kpi-replies">0</strong>
+          </article>
+          <article class="kpi">
+            <div class="kpi-top"><small>Reply Rate</small><span class="kpi-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l5-5 4 4 7-8"></path></svg></span></div>
+            <strong class="good" id="kpi-rate">0%</strong>
+          </article>
+          <article class="kpi">
+            <div class="kpi-top"><small>Meetings Booked</small><span class="kpi-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M4 10h16"></path></svg></span></div>
+            <strong id="kpi-meetings">0</strong>
+          </article>
+          <article class="kpi">
+            <div class="kpi-top"><small>Active Pilots</small><span class="kpi-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z"></path></svg></span></div>
+            <strong id="kpi-pilots">0</strong>
+          </article>
+        </div>
+
+        <div class="split">
+          <article class="panel">
+            <h2>Outreach Pipeline Distribution</h2>
+            <ul class="bars" id="pipeline"></ul>
+          </article>
+          <article class="panel">
+            <h2>Companies by Country</h2>
+            <ul class="countries" id="countries"></ul>
+          </article>
+        </div>
+
+        <div class="triple">
+          <article class="panel">
+            <h2><span class="warn">!</span> Overdue Follow-ups (<span id="overdue-count">0</span>)</h2>
+            <ul class="stack" id="overdue"></ul>
+          </article>
+          <article class="panel">
+            <h2>No Activity (14+ Days) (<span id="stale-count">0</span>)</h2>
+            <ul class="stack" id="stale"></ul>
+          </article>
+          <article class="panel">
+            <h2>Recent Team Activity</h2>
+            <ul class="activity" id="activity"></ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="view hidden" id="view-companies">
+        <div id="company-list">
+        <div class="page-head">
+          <div>
+            <h1>Target Companies</h1>
+            <p>Manage global OEM, ODM, and Integrator prospects for Mini Radar.</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn ghost" id="import-excel" type="button">Import Excel</button>
+            <input id="import-file" type="file" accept=".xlsx,.xls,.csv" hidden />
+            <button class="btn ghost" id="export-csv" type="button">Export CSV</button>
+            <button class="btn green" id="add-company" type="button">+ Add Company</button>
+          </div>
+        </div>
+        <p class="import-status" id="import-status">Excel columns: Company, Country, Industry, Type, Stage, Priority, Next Follow-up, Contact Number, Mail ID. A company with the same name is updated; a new name is added.</p>
+        <div class="company-toolbar">
+          <label class="search filter-search">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3-3"></path></svg>
+            <input id="company-filter" type="search" placeholder="Filter companies..." />
+          </label>
+          <select id="stage-filter" aria-label="Filter by stage">
+            <option value="">All Stages</option>
+          </select>
+          <select id="priority-filter" aria-label="Filter by priority">
+            <option value="">All Priorities</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+          <div class="view-toggle" role="group" aria-label="Company view">
+            <button class="toggle active" id="table-view" type="button">Table View</button>
+            <button class="toggle" id="kanban-view" type="button">Kanban View</button>
+          </div>
+        </div>
+        <article class="panel table-panel" id="company-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Country</th>
+                <th>Contact Number</th>
+                <th>Mail ID</th>
+                <th>Industry</th>
+                <th>Type</th>
+                <th>Stage</th>
+                <th>Priority</th>
+                <th>Next Follow-up</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="company-rows"></tbody>
+          </table>
+        </article>
+        <div class="kanban hidden" id="company-kanban"></div>
+      </div>
+
+      <div id="company-detail" class="hidden">
+        <button class="back-link" id="back-to-companies" type="button">← Target Companies</button>
+        <article class="detail-head">
+          <div>
+            <div class="detail-title">
+              <h1 id="detail-name">Company</h1>
+              <button class="btn ghost" id="edit-company" type="button">Edit</button>
+            </div>
+            <p id="detail-meta"></p>
+            <div class="action-row" id="detail-actions"></div>
+          </div>
+          <button class="btn green" id="compose-email" type="button">Compose Email</button>
+        </article>
+
+        <div class="detail-grid">
+          <div>
+            <article class="panel update-card">
+              <h2>Add quick update</h2>
+              <textarea id="update-note" rows="3" placeholder="Write an update or interaction note about this company..."></textarea>
+              <div class="update-row">
+                <select id="update-type" aria-label="Note type">
+                  <option>Current Note</option>
+                  <option>Mail Sent</option>
+                  <option>Reply Received</option>
+                  <option>Follow-up Sent</option>
+                  <option>Meeting Scheduled</option>
+                  <option>Demo Done</option>
+                  <option>Quotation Sent</option>
+                </select>
+                <button class="btn green" id="save-update" type="button">Save Update</button>
+              </div>
+            </article>
+            <article class="panel timeline-card">
+              <div class="detail-tabs" id="detail-tabs">
+                <button class="tab active" data-tab="timeline" type="button">Timeline</button>
+                <button class="tab" data-tab="contacts" type="button">Contacts</button>
+              </div>
+              <div class="tab-panel" id="tab-timeline"></div>
+              <div class="tab-panel hidden" id="tab-contacts"></div>
+            </article>
+          </div>
+          <aside>
+            <article class="panel">
+              <h2>Pipeline stage</h2>
+              <ul class="stage-list" id="stage-list"></ul>
+            </article>
+          </aside>
+        </div>
+      </div>
+      </section>
+
+      <section class="view hidden" id="view-templates">
+        <div class="page-head">
+          <div>
+            <h1>Email Templates</h1>
+            <p>Outreach drafts for OEM, distribution, and pilot conversations.</p>
+          </div>
+          <button class="btn green" id="add-template" type="button">+ Add Template</button>
+        </div>
+        <div class="template-grid" id="templates"></div>
+      </section>
+
+      <section class="view hidden" id="view-settings">
+        <div class="page-head">
+          <div>
+            <h1>Settings</h1>
+            <p>Account preferences for the outreach workspace. This screen is a frontend shell.</p>
+          </div>
+        </div>
+        <article class="panel settings-panel">
+          <h2>Profile</h2>
+          <label>Name<input id="settings-name" value="" readonly /></label>
+          <label>Role<input value="Admin" readonly /></label>
+          <label>Workspace<input value="Nex Digi · Mini Radar" readonly /></label>
+          <h2>Notifications</h2>
+          <label class="check"><input type="checkbox" checked disabled /> Email when a follow-up is overdue</label>
+          <label class="check"><input type="checkbox" checked disabled /> Email when a reply is logged</label>
+        </article>
+        <article class="panel settings-panel">
+          <h2>Database (Supabase)</h2>
+          <p class="empty-note">Companies, timeline notes, and email templates are stored in Supabase. Run <code>supabase/schema.sql</code> once in the Supabase SQL editor, then paste the project URL and anon key.</p>
+          <label>Project URL<input id="sb-url" placeholder="https://xxxx.supabase.co" /></label>
+          <label>Anon public key<input id="sb-key" type="password" autocomplete="off" placeholder="eyJ..." /></label>
+          <div class="dialog-actions">
+            <button class="btn ghost" id="sb-disconnect" type="button">Disconnect</button>
+            <button class="btn green" id="sb-connect" type="button">Connect and load</button>
+          </div>
+          <p class="empty-note" id="db-status">Not connected.</p>
+        </article>
+        <article class="panel settings-panel">
+          <h2>Send mail (Gmail)</h2>
+          <p class="empty-note">Send delivers the email from this page through your Gmail account, including attachments. Paste the Google OAuth Client ID. The first send asks you to allow Gmail once.</p>
+          <label>Google Client ID<input id="gmail-client" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off" /></label>
+          <div class="dialog-actions">
+            <button class="btn green" id="gmail-save" type="button">Save</button>
+          </div>
+          <p class="empty-note" id="gmail-status"></p>
+        </article>
+      </section>
+    </div>
+  </div>
+
+  <dialog id="compose-dialog" class="mail-window">
+    <form id="compose-form" class="mail">
+      <header class="mail-bar">
+        <strong>New message</strong>
+        <button class="mail-close" id="cancel-compose" type="button" aria-label="Close">×</button>
+      </header>
+      <div class="mail-field"><span>From</span><input name="from" type="email" required readonly value="nexdigi.business@gmail.com" autocomplete="email" /></div>
+      <div class="mail-field"><span>To</span><input name="to" type="email" required placeholder="name@company.com" autocomplete="email" /></div>
+      <div class="mail-field"><span>Cc</span><input name="cc" placeholder="Optional" /></div>
+      <div class="mail-field"><span>Subject</span><input name="subject" required placeholder="Subject" /></div>
+      <textarea name="message" rows="12" required placeholder="Write your email..."></textarea>
+      <ul id="attachment-list" class="attachment-list"></ul>
+      <div id="template-picker" class="template-picker hidden"></div>
+      <p class="compose-status" id="compose-status"></p>
+      <footer class="mail-foot">
+        <button class="btn green" type="submit">Send</button>
+        <button class="btn ghost" id="use-template" type="button">Use template</button>
+        <button class="btn ghost" id="add-attachment" type="button">Attach file</button>
+        <input id="mail-files" type="file" multiple hidden />
+        <button class="btn text" id="discard-compose" type="button">Discard</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="template-dialog">
+    <form id="template-form">
+      <h2 id="template-dialog-title">Add Template</h2>
+      <input type="hidden" name="id" />
+      <label>Template name*<input name="name" required /></label>
+      <label>Subject*<input name="subject" required /></label>
+      <label>Template format*
+        <textarea name="body" rows="8" required placeholder="Write the email. You can edit this text any time."></textarea>
+      </label>
+      <div class="dialog-actions">
+        <button class="btn text danger-text hidden" id="delete-template" type="button">Delete</button>
+        <button class="btn text" id="cancel-template" type="button">Cancel</button>
+        <button class="btn green" type="submit">Save Template</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="company-dialog">
+    <form id="company-form">
+      <h2 id="company-dialog-title">Add Target Company</h2>
+      <input type="hidden" name="id" />
+      <label>Company Name*<input name="company" required /></label>
+      <label>Country*<input name="country" required /></label>
+      <label>Contact Number<input name="phone" type="tel" placeholder="+91 98765 43210" /></label>
+      <label>Mail ID<input name="email" type="email" placeholder="name@company.com" /></label>
+      <label>Industry*<input name="industry" required placeholder="Smart home, Consumer electronics" /></label>
+      <label>Type*
+        <select name="type" required>
+          <option>OEM</option>
+          <option>ODM</option>
+          <option>System Integrator</option>
+          <option>Distributor</option>
+          <option>Technology Partner</option>
+          <option>End Customer</option>
+        </select>
+      </label>
+      <label>Stage*
+        <select name="stage" required>
+          <option>Identified</option>
+          <option>Researched</option>
+          <option>Contacted</option>
+          <option>Replied</option>
+          <option>Interested</option>
+          <option>Meeting/Demo</option>
+          <option>Evaluation/Pilot</option>
+          <option>Negotiation</option>
+          <option>Won</option>
+          <option>Lost / On Hold</option>
+        </select>
+      </label>
+      <label>Priority*
+        <select name="priority" required>
+          <option>High</option>
+          <option>Medium</option>
+          <option>Low</option>
+        </select>
+      </label>
+      <label>Next Follow-up<input name="due" type="date" /></label>
+      <div class="dialog-actions">
+        <button class="btn text" id="cancel-company" type="button">Cancel</button>
+        <button class="btn green" type="submit">Save Company</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <script src="app.js"></script>
+</body>
+</html>

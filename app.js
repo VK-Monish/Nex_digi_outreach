@@ -60,14 +60,20 @@ let activeCompanyId = null;
 const SB_CONFIG_KEY = "nex-sb-config";
 const sbState = { url: "", key: "", client: null, ready: false, saving: false, timer: null, lastJson: "" };
 
+function envConfig() {
+  return window.NEX_CONFIG || {};
+}
+
 function loadSbConfig() {
+  const env = envConfig();
   try {
     const saved = JSON.parse(localStorage.getItem(SB_CONFIG_KEY) || "{}");
-    sbState.url = saved.url ? normalizeSbUrl(saved.url) : "";
-    sbState.key = saved.key || "";
+    const url = env.supabaseUrl || saved.url || "";
+    sbState.url = url ? normalizeSbUrl(url) : "";
+    sbState.key = env.supabaseAnonKey || saved.key || "";
   } catch (err) {
-    sbState.url = "";
-    sbState.key = "";
+    sbState.url = env.supabaseUrl ? normalizeSbUrl(env.supabaseUrl) : "";
+    sbState.key = env.supabaseAnonKey || "";
   }
 }
 loadSbConfig();
@@ -757,7 +763,7 @@ function requestGmailToken(clientId) {
 }
 
 async function sendWithGmail(mail) {
-  const clientId = localStorage.getItem(GMAIL_CLIENT_KEY) || "";
+  const clientId = envConfig().googleClientId || localStorage.getItem(GMAIL_CLIENT_KEY) || "";
   if (!clientId) throw new Error("Add the Google Client ID in Settings, then press Send again.");
   if (location.protocol === "file:") throw new Error("Open this website from a web address such as http://127.0.0.1. Google cannot send mail from a file opened on the computer.");
   if (!window.google?.accounts?.oauth2) throw new Error("Google sign-in did not load. Check your internet connection and refresh.");
@@ -1078,20 +1084,6 @@ document.getElementById("sign-out").addEventListener("click", () => {
   document.getElementById("login-form").reset();
 });
 
-document.getElementById("sb-url").value = sbState.url;
-document.getElementById("gmail-client").value = localStorage.getItem(GMAIL_CLIENT_KEY) || "";
-document.getElementById("gmail-save").addEventListener("click", () => {
-  const clientId = document.getElementById("gmail-client").value.trim();
-  const status = document.getElementById("gmail-status");
-  if (!clientId.endsWith(".apps.googleusercontent.com")) {
-    status.textContent = "Paste the Client ID from Google Cloud. It ends with .apps.googleusercontent.com.";
-    return;
-  }
-  localStorage.setItem(GMAIL_CLIENT_KEY, clientId);
-  gmailToken = { value: "", expires: 0 };
-  status.textContent = "Saved. Press Send on a company and allow Gmail once.";
-});
-
 function normalizeSbUrl(raw) {
   const text = String(raw || "").trim();
   // Accept the dashboard link too: .../dashboard/project/<ref>/... -> https://<ref>.supabase.co
@@ -1105,30 +1097,8 @@ function normalizeSbUrl(raw) {
   }
 }
 
-document.getElementById("sb-connect").addEventListener("click", () => {
-  sbState.url = normalizeSbUrl(document.getElementById("sb-url").value);
-  document.getElementById("sb-url").value = sbState.url;
-  const typedKey = document.getElementById("sb-key").value.trim();
-  if (typedKey) sbState.key = typedKey;
-  localStorage.setItem(SB_CONFIG_KEY, JSON.stringify({ url: sbState.url, key: sbState.key }));
-  document.getElementById("sb-key").value = "";
-  initData();
-});
-
-document.getElementById("sb-disconnect").addEventListener("click", () => {
-  localStorage.removeItem(SB_CONFIG_KEY);
-  sbState.url = "";
-  sbState.key = "";
-  sbState.client = null;
-  sbState.ready = false;
-  document.getElementById("sb-url").value = "";
-  document.getElementById("sb-key").value = "";
-  setDbStatus("Disconnected. Changes stay in this browser until Supabase is connected again.");
-});
-
 const savedUser = sessionStorage.getItem("nex-user");
 if (users[savedUser]) {
   showUser(savedUser);
   initData();
 }
-

@@ -46,4 +46,3 @@ drop policy if exists "team all templates" on templates;
 create policy "team all companies" on companies for all to anon using (true) with check (true);
 create policy "team all notes" on notes for all to anon using (true) with check (true);
 create policy "team all templates" on templates for all to anon using (true) with check (true);
-

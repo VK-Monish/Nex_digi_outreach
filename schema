@@ -1,0 +1,49 @@
+-- Run this once in the Supabase SQL editor.
+-- It creates the tables the outreach app reads and writes.
+
+create table if not exists companies (
+  id bigint primary key,
+  name text not null,
+  country text not null default '',
+  industry jsonb not null default '[]'::jsonb,
+  type text not null default '',
+  stage text not null default 'Identified',
+  priority text not null default 'Medium',
+  due text not null default '—'
+);
+
+-- Contact details shown on the Companies page and used as the compose "To" address.
+alter table companies add column if not exists phone text not null default '';
+alter table companies add column if not exists email text not null default '';
+
+create table if not exists notes (
+  id bigint primary key,
+  company_id bigint not null references companies(id) on delete cascade,
+  title text not null,
+  note_text text not null default '',
+  author text not null default '',
+  at timestamptz not null default now()
+);
+
+create table if not exists templates (
+  id bigint primary key,
+  name text not null,
+  subject text not null default '',
+  body text not null default ''
+);
+
+alter table companies enable row level security;
+alter table notes enable row level security;
+alter table templates enable row level security;
+
+drop policy if exists "team all companies" on companies;
+drop policy if exists "team all notes" on notes;
+drop policy if exists "team all templates" on templates;
+
+-- The website uses the public anon key. These policies let that key
+-- read and write the three tables. Keep the Supabase project private
+-- to the team; do not publish the anon key outside the company.
+create policy "team all companies" on companies for all to anon using (true) with check (true);
+create policy "team all notes" on notes for all to anon using (true) with check (true);
+create policy "team all templates" on templates for all to anon using (true) with check (true);
+

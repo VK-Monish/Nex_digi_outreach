@@ -282,6 +282,10 @@ select option { background: #15130d; color: var(--text); }
 }
 .company-cell strong { display: block; font-size: 14px; }
 .company-cell small, .due-muted { color: var(--muted); font-size: 12px; }
+a.company-site { color: var(--gold-light); text-decoration: none; }
+a.company-site:hover { text-decoration: underline; }
+.detail-title a.company-site { color: inherit; }
+.detail-title a.company-site:hover { color: var(--gold-light); }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag {
   background: rgba(255, 255, 255, 0.05); color: #d6d0bf; border: 1px solid var(--line-soft);

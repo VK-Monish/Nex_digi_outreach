@@ -52,6 +52,30 @@ function toLocalInput(value) {
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 }
+function safeUrl(value) {
+  const text = String(value || "").trim();
+  if (!text || /^not verified$/i.test(text)) return "";
+  const withProtocol = /^https?:\/\//i.test(text) ? text : `https://${text}`;
+  try {
+    const url = new URL(withProtocol);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+    return url.href;
+  } catch (err) {
+    return "";
+  }
+}
+function websiteLabel(value) {
+  try {
+    return new URL(safeUrl(value)).hostname.replace(/^www\./, "");
+  } catch (err) {
+    return value;
+  }
+}
+function websiteLink(value, label) {
+  const href = safeUrl(value);
+  if (!href) return "";
+  return `<a class="company-site" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label || href)}</a>`;
+}
 let activeCompanyId = null;
 
 /* ---------- Supabase ----------
@@ -113,6 +137,7 @@ function applyRows(companyRows, noteRows, templateRows) {
     country: row.country,
     phone: row.phone || "",
     email: row.email || "",
+    website: row.website || "",
     industry: row.industry || [],
     type: row.type,
     stage: row.stage,
@@ -155,7 +180,7 @@ async function saveToSupabase() {
   try {
     const companyRows = companies.map((company) => ({
       id: company.id, name: company.name, country: company.country,
-      phone: company.phone || "", email: company.email || "",
+      phone: company.phone || "", email: company.email || "", website: company.website || "",
       industry: company.industry, type: company.type, stage: company.stage,
       priority: company.priority, due: company.due
     }));
@@ -338,7 +363,7 @@ function filteredCompanies() {
   const stage = document.getElementById("stage-filter").value;
   const priority = document.getElementById("priority-filter").value;
   return companies.filter((c) => {
-    const haystack = [c.name, c.country, c.phone, c.email, c.type, c.stage, ...c.industry].join(" ").toLowerCase();
+    const haystack = [c.name, c.country, c.phone, c.email, c.website, c.type, c.stage, ...c.industry].join(" ").toLowerCase();
     return (!q || haystack.includes(q)) && (!stage || c.stage === stage) && (!priority || c.priority === priority);
   });
 }
@@ -354,19 +379,20 @@ function renderCompanies() {
       <td>
         <div class="company-cell">
           <span class="company-avatar" style="${avatarStyle(c.name)}">${companyInitial(c.name)}</span>
-          <div><strong>${escapeHtml(c.name)}</strong><small>Click to edit</small></div>
+          <div><strong>${websiteLink(c.website, c.name) || escapeHtml(c.name)}</strong><small>${c.website ? "Opens website" : "Open company"}</small></div>
         </div>
       </td>
       <td>${escapeHtml(c.country)}</td>
       <td class="${c.phone ? "" : "due-muted"}">${escapeHtml(c.phone || "—")}</td>
       <td class="${c.email ? "" : "due-muted"}">${escapeHtml(c.email || "—")}</td>
+      <td class="${c.website ? "" : "due-muted"}">${websiteLink(c.website, websiteLabel(c.website)) || "—"}</td>
       <td><div class="tags">${c.industry.map((item) => `<span class="tag">${escapeHtml(item)}</span>`).join("")}</div></td>
       <td>${escapeHtml(c.type)}</td>
       <td><span class="badge ${stageClass(c.stage)}">${escapeHtml(c.stage)}</span></td>
       <td><span class="priority ${c.priority.toLowerCase()}">${escapeHtml(c.priority)}</span></td>
       <td class="${c.due === "—" ? "due-muted" : ""}">${escapeHtml(c.due)}</td>
       <td><button class="btn danger row-delete" type="button" data-delete-company="${c.id}">Delete</button></td>
-    </tr>`).join("") || `<tr><td colspan="10">${companies.length ? "No companies match that filter." : "No companies yet. Add one or import an Excel file."}</td></tr>`;
+    </tr>`).join("") || `<tr><td colspan="11">${companies.length ? "No companies match that filter." : "No companies yet. Add one or import an Excel file."}</td></tr>`;
 
   const stages = [...new Set(rows.map((c) => c.stage))];
   document.getElementById("company-kanban").innerHTML = stages.map((stage) => `
@@ -374,7 +400,7 @@ function renderCompanies() {
       <h3>${stage} · ${rows.filter((c) => c.stage === stage).length}</h3>
       ${rows.filter((c) => c.stage === stage).map((c) => `
         <article class="kanban-card" data-id="${c.id}">
-          <strong>${escapeHtml(c.name)}</strong>
+          <strong>${websiteLink(c.website, c.name) || escapeHtml(c.name)}</strong>
           <p>${escapeHtml(c.country)} · ${escapeHtml(c.type)}</p>
           ${c.email ? `<p>${escapeHtml(c.email)}</p>` : ""}
           <p><span class="priority ${c.priority.toLowerCase()}">${c.priority}</span> · ${c.due}</p>
@@ -509,6 +535,7 @@ function openCompanyDialog(company) {
     companyForm.elements.country.value = company.country;
     companyForm.elements.phone.value = company.phone || "";
     companyForm.elements.email.value = company.email || "";
+    companyForm.elements.website.value = company.website || "";
     companyForm.elements.industry.value = company.industry.join(", ");
     companyForm.elements.type.value = company.type;
     companyForm.elements.stage.value = company.stage;
@@ -534,7 +561,8 @@ function renderCompanyDetail() {
   scheduleSave();
   const company = activeCompany();
   if (!company) return;
-  document.getElementById("detail-name").textContent = company.name;
+  const nameLink = websiteLink(company.website, company.name);
+  document.getElementById("detail-name").innerHTML = nameLink || escapeHtml(company.name);
   document.getElementById("detail-meta").textContent = `${company.country} • ${company.industry.join(", ")} • Local time ${localTime(company.country)} (${company.country})`;
   document.getElementById("detail-actions").innerHTML = quickActions.map((action) => `
     <button class="chip ${action === "Not Interested" ? "danger" : ""}" data-action="${action}" type="button">${action === "Not Interested" ? "× " : ""}${action}</button>`).join("");
@@ -553,6 +581,8 @@ function renderCompanyDetail() {
       <dd>${company.phone ? `<a href="tel:${escapeHtml(company.phone.replace(/[^\d+]/g, ""))}">${escapeHtml(company.phone)}</a>` : "Not added"}</dd>
       <dt>Mail ID</dt>
       <dd>${company.email ? `<a href="mailto:${escapeHtml(company.email)}">${escapeHtml(company.email)}</a>` : "Not added"}</dd>
+      <dt>Website</dt>
+      <dd>${websiteLink(company.website) || "Not added"}</dd>
     </dl>
     <p class="empty-note">To change these, press Edit at the top of this page.</p>`;
   document.getElementById("stage-list").innerHTML = stageNames.map((stage) => `
@@ -589,12 +619,14 @@ document.getElementById("company-rows").addEventListener("click", (event) => {
     deleteCompany(remove.dataset.deleteCompany);
     return;
   }
+  if (event.target.closest("a.company-site")) return;
   const row = event.target.closest("tr[data-id]");
   if (!row) return;
   showCompanyDetail(companies.find((company) => String(company.id) === row.dataset.id));
 });
 
 document.getElementById("company-kanban").addEventListener("click", (event) => {
+  if (event.target.closest("a.company-site")) return;
   const card = event.target.closest("[data-id]");
   if (!card) return;
   showCompanyDetail(companies.find((company) => String(company.id) === card.dataset.id));
@@ -655,9 +687,17 @@ let composeFiles = [];
 
 const SENDER_EMAIL = "nexdigi.business@gmail.com";
 
+function lockSender() {
+  const input = composeForm.elements.from;
+  input.readOnly = true;
+  input.value = SENDER_EMAIL;
+}
+
 function resetCompose() {
   composeForm.reset();
-  composeForm.elements.from.value = SENDER_EMAIL;
+  lockSender();
+  setTimeout(lockSender, 0);
+  setTimeout(lockSender, 300);
   composeFiles = [];
   renderComposeFiles();
   document.getElementById("template-picker").classList.add("hidden");
@@ -767,7 +807,9 @@ async function sendWithGmail(mail) {
   if (!clientId) throw new Error("Add the Google Client ID in Settings, then press Send again.");
   if (location.protocol === "file:") throw new Error("Open this website from a web address such as http://127.0.0.1. Google cannot send mail from a file opened on the computer.");
   if (!window.google?.accounts?.oauth2) throw new Error("Google sign-in did not load. Check your internet connection and refresh.");
+  lockSender();
   const token = await requestGmailToken(clientId);
+  mail = { ...mail, from: `Nex Digi <${SENDER_EMAIL}>` };
   const raw = textToBase64Url(await buildEml(mail));
   const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
     method: "POST",
@@ -775,7 +817,13 @@ async function sendWithGmail(mail) {
     body: JSON.stringify({ raw })
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.error?.message || `Gmail returned ${response.status}.`);
+  if (!response.ok) {
+    const detail = body.error?.message || `Gmail returned ${response.status}.`;
+    if (/from|send as|delegation/i.test(detail)) {
+      throw new Error(`Google did not accept ${SENDER_EMAIL} for this signed-in account. In that Gmail, open Settings, then Accounts, then Send mail as, and add ${SENDER_EMAIL}.`);
+    }
+    throw new Error(detail);
+  }
 }
 
 function showTemplates() {
@@ -843,7 +891,8 @@ composeForm.addEventListener("submit", async (event) => {
   const company = activeCompany();
   if (!company) return;
   const data = new FormData(composeForm);
-  const from = String(data.get("from") || "").trim();
+  lockSender();
+  const from = SENDER_EMAIL;
   const to = String(data.get("to") || "").trim();
   const cc = String(data.get("cc") || "").trim();
   const subject = String(data.get("subject") || "").trim();
@@ -883,6 +932,7 @@ companyForm.addEventListener("submit", (event) => {
     country,
     phone: String(data.get("phone") || "").trim(),
     email: String(data.get("email") || "").trim(),
+    website: safeUrl(data.get("website")),
     industry,
     type: data.get("type"),
     stage: data.get("stage"),
@@ -904,6 +954,7 @@ const importColumns = {
   country: ["country"],
   phone: ["contactnumber", "contactno", "phone", "phonenumber", "mobile", "mobilenumber", "contact"],
   email: ["mailid", "email", "emailid", "mail", "emailaddress"],
+  website: ["website", "websitelink", "url", "site", "webpage", "companywebsite"],
   industry: ["industry", "industries"],
   type: ["type", "companytype", "prospecttype"],
   stage: ["stage", "pipelinestage"],
@@ -941,6 +992,7 @@ function readImportRow(row) {
     country: get("country"),
     phone: get("phone"),
     email: get("email"),
+    website: safeUrl(get("website")),
     industry: get("industry").split(/[,;|]/).map((item) => item.trim()).filter(Boolean),
     type: pickOption(get("type"), companyTypes, ""),
     stage: pickOption(get("stage"), stageNames, ""),
@@ -974,6 +1026,7 @@ async function importCompanies(file) {
       if (item.country) existing.country = item.country;
       if (item.phone) existing.phone = item.phone;
       if (item.email) existing.email = item.email;
+      if (item.website) existing.website = item.website;
       if (item.industry.length) existing.industry = item.industry;
       if (item.type) existing.type = item.type;
       if (item.stage) existing.stage = item.stage;
@@ -987,6 +1040,7 @@ async function importCompanies(file) {
         country: item.country,
         phone: item.phone,
         email: item.email,
+        website: item.website,
         industry: item.industry,
         type: item.type || "OEM",
         stage: item.stage || "Identified",
@@ -1017,9 +1071,9 @@ document.getElementById("import-file").addEventListener("change", async (event) 
 });
 
 document.getElementById("export-csv").addEventListener("click", () => {
-  const header = ["Company", "Country", "Contact Number", "Mail ID", "Industry", "Type", "Stage", "Priority", "Next Follow-up"];
+  const header = ["Company", "Country", "Contact Number", "Mail ID", "Website", "Industry", "Type", "Stage", "Priority", "Next Follow-up"];
   const lines = [header, ...filteredCompanies().map((c) => [
-    c.name, c.country, c.phone || "", c.email || "", c.industry.join(" | "), c.type, c.stage, c.priority, c.due
+    c.name, c.country, c.phone || "", c.email || "", c.website || "", c.industry.join(" | "), c.type, c.stage, c.priority, c.due
   ])];
   const csv = lines.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv" });

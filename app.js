@@ -82,7 +82,8 @@ let activeCompanyId = null;
    Companies, timeline notes, and email templates are stored in Supabase.
    Run supabase/schema.sql once in the Supabase SQL editor, then connect in Settings. */
 const SB_CONFIG_KEY = "nex-sb-config";
-const sbState = { url: "", key: "", client: null, ready: false, saving: false, timer: null, lastJson: "" };
+const sbState = { url: "", key: "", client: null, ready: false, timer: null, lastJson: "" };
+let saveChain = Promise.resolve();
 
 function envConfig() {
   return window.NEX_CONFIG || {};
@@ -171,55 +172,100 @@ async function loadFromSupabase() {
   };
 }
 
-async function saveToSupabase() {
-  if (!sbState.ready || !sbConfigured() || sbState.saving) return;
+function chunk(items, size) {
+  const parts = [];
+  for (let i = 0; i < items.length; i += size) parts.push(items.slice(i, i + size));
+  return parts;
+}
+
+async function upsertChunks(table, rows) {
+  for (const part of chunk(rows, 80)) {
+    const saved = await db().from(table).upsert(part, { onConflict: "id" });
+    if (saved.error) throw new Error(saved.error.message);
+  }
+}
+
+async function idsNotKept(table, keepIds) {
+  const keep = new Set(keepIds.map((id) => String(id)));
+  const remove = [];
+  const page = 1000;
+  for (let from = 0; ; from += page) {
+    const res = await db().from(table).select("id").range(from, from + page - 1);
+    if (res.error) throw new Error(res.error.message);
+    const rows = res.data || [];
+    rows.forEach((row) => {
+      if (!keep.has(String(row.id))) remove.push(row.id);
+    });
+    if (rows.length < page) break;
+  }
+  return remove;
+}
+
+async function deleteIds(table, ids) {
+  for (const part of chunk(ids, 80)) {
+    const gone = await db().from(table).delete().in("id", part);
+    if (gone.error) throw new Error(gone.error.message);
+  }
+}
+
+async function saveCompanies(companyRows) {
+  try {
+    if (companyRows.length) await upsertChunks("companies", companyRows);
+    return "";
+  } catch (err) {
+    if (!/website/i.test(err.message)) throw err;
+    const withoutWebsite = companyRows.map(({ website, ...row }) => row);
+    if (withoutWebsite.length) await upsertChunks("companies", withoutWebsite);
+    return " Website links were not stored. In the Supabase SQL editor run: alter table companies add column if not exists website text not null default ''; then import the file again.";
+  }
+}
+
+async function writeSnapshot() {
+  const companyRows = companies.map((company) => ({
+    id: company.id, name: company.name, country: company.country,
+    phone: company.phone || "", email: company.email || "", website: company.website || "",
+    industry: company.industry, type: company.type, stage: company.stage,
+    priority: company.priority, due: company.due
+  }));
+  const noteRows = companies.flatMap((company) => company.notes.map((note) => ({
+    id: note.id, company_id: company.id, title: note.title,
+    note_text: note.text, author: note.by, at: note.at
+  })));
+  const templateRows = templates.map((template) => ({
+    id: template.id, name: template.name, subject: template.subject, body: template.body
+  }));
   const json = JSON.stringify(snapshot());
-  if (json === sbState.lastJson) return;
-  sbState.saving = true;
+  if (json === sbState.lastJson) return { ok: true, message: "Saved to Supabase." };
+
   setDbStatus("Saving to Supabase…");
   try {
-    const companyRows = companies.map((company) => ({
-      id: company.id, name: company.name, country: company.country,
-      phone: company.phone || "", email: company.email || "", website: company.website || "",
-      industry: company.industry, type: company.type, stage: company.stage,
-      priority: company.priority, due: company.due
-    }));
-    const noteRows = companies.flatMap((company) => company.notes.map((note) => ({
-      id: note.id, company_id: company.id, title: note.title,
-      note_text: note.text, author: note.by, at: note.at
-    })));
-    const templateRows = templates.map((template) => ({
-      id: template.id, name: template.name, subject: template.subject, body: template.body
-    }));
+    const websiteNote = await saveCompanies(companyRows);
+    await deleteIds("companies", await idsNotKept("companies", companyRows.map((row) => row.id)));
 
-    if (companyRows.length) {
-      const saved = await db().from("companies").upsert(companyRows);
-      if (saved.error) throw new Error(saved.error.message);
-    }
-    const goneCompanies = await db().from("companies").delete().not("id", "in", `(${companyRows.map((row) => row.id).join(",") || "0"})`);
-    if (goneCompanies.error) throw new Error(goneCompanies.error.message);
+    if (noteRows.length) await upsertChunks("notes", noteRows);
+    await deleteIds("notes", await idsNotKept("notes", noteRows.map((row) => row.id)));
 
-    if (noteRows.length) {
-      const savedNotes = await db().from("notes").upsert(noteRows);
-      if (savedNotes.error) throw new Error(savedNotes.error.message);
-    }
-    const goneNotes = await db().from("notes").delete().not("id", "in", `(${noteRows.map((row) => row.id).join(",") || "0"})`);
-    if (goneNotes.error) throw new Error(goneNotes.error.message);
+    if (templateRows.length) await upsertChunks("templates", templateRows);
+    await deleteIds("templates", await idsNotKept("templates", templateRows.map((row) => row.id)));
 
-    if (templateRows.length) {
-      const savedTemplates = await db().from("templates").upsert(templateRows);
-      if (savedTemplates.error) throw new Error(savedTemplates.error.message);
-    }
-    const goneTemplates = await db().from("templates").delete().not("id", "in", `(${templateRows.map((row) => row.id).join(",") || "0"})`);
-    if (goneTemplates.error) throw new Error(goneTemplates.error.message);
-
-    sbState.lastJson = JSON.stringify(snapshot());
-    setDbStatus(`Saved to Supabase at ${new Date().toLocaleTimeString()}.`);
+    sbState.lastJson = json;
+    const message = `Saved to Supabase at ${new Date().toLocaleTimeString()}.${websiteNote}`;
+    setDbStatus(message);
+    return { ok: true, message };
   } catch (err) {
-    setDbStatus(`Save failed: ${err.message}`);
-  } finally {
-    sbState.saving = false;
+    const message = `Save failed: ${err.message}`;
+    setDbStatus(message);
+    return { ok: false, message };
   }
+}
+
+function saveToSupabase() {
+  if (!sbState.ready || !sbConfigured()) {
+    return Promise.resolve({ ok: false, message: "Supabase is not connected, so this change is only on this page." });
+  }
+  const run = saveChain.then(() => writeSnapshot());
+  saveChain = run.then(() => {}, () => {});
+  return run;
 }
 
 function scheduleSave() {
@@ -1053,7 +1099,15 @@ async function importCompanies(file) {
   });
   renderDashboard();
   renderCompanies();
-  status.textContent = `Imported ${file.name}: ${added} added, ${updated} updated${skipped ? `, ${skipped} rows skipped because the company name was empty` : ""}.`;
+  const summary = `Imported ${file.name}: ${added} added, ${updated} updated${skipped ? `, ${skipped} rows skipped because the company name was empty` : ""}.`;
+  if (!sbState.ready) {
+    status.textContent = `${summary} Supabase is not connected yet, so this list is only on this page. Open Settings, connect, then import the file again.`;
+    return;
+  }
+  clearTimeout(sbState.timer);
+  status.textContent = `${summary} Saving to Supabase…`;
+  const saved = await saveToSupabase();
+  status.textContent = `${summary} ${saved.message}`;
 }
 
 document.getElementById("import-excel").addEventListener("click", () => {
